@@ -1,0 +1,6 @@
+<h1>{{.Name}}</h1>
+<ul class="nav nav-stacked nav-pills">
+  {{range $a := .Albums }}
+  <li><a href="/{{$.PageType}}/{{$a}}">{{$a}}</a></li>
+  {{end}}
+</ul>
