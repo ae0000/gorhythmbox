@@ -37,21 +37,14 @@
             <li><a id="pause" href="#"><span class="glyphicon glyphicon-pause"></span> Pause </a></li>
             <li><a id="next" href="#"><span class="glyphicon glyphicon-step-forward"></span> Next </a></li>
             
-            <!--<li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Jump <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Nav header</li>
-                <li><a href="#">Separated link</a></li>
-                <li><a href="#">One more separated link</a></li>
+                <li><a href="/albums">Albums</a></li>
+                <li><a href="/artists">Artists</a></li>
+                <li><a href="/genres">Genres</a></li>
               </ul>
-            </li>-->
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <li><a id="current" href="">Currently playing</a></li>
+            </li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -64,6 +57,14 @@
 
     </div> <!-- /container -->
 
+
+    <nav class="navbar navbar-inverse navbar-fixed-bottom" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+        <a class="navbar-brand" href="#"><span id="current" class="text-danger">Currently playing</span></a>
+        </div>
+      </div>
+    </nav>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

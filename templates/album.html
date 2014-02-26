@@ -1,10 +1,18 @@
-<h2>{{.Album.Entry.Album}}</h2>
-<div class="btn-group">
-  <a class="btn btn-info" href="/albums/play/{{.Album.Entry.Album}}">Play all tracks</a>
-  <a class="btn btn-warning" href="/albums/enqueue/{{.Album.Entry.Album}}">Enqueue all tracks</a>
+<div class="well">
+<h2>{{.Album.Entry.Artist}} <small>{{.Album.Entry.Album}}</small> <span class="label label-info pull-right">{{.Album.Entry.Genre}}</span></h2>
+
+<hr>
+<div >
+  <a class="btn btn-primary" href="/albums/play/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
+  <a class="btn btn-primary" href="/albums/enqueue/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Enqueue all tracks</a>
 </div>
+
+</div>
+
 <ul class="nav nav-stacked nav-pills">
-  {{range .Album.Tracks }}
-  <li><a href="/album/{{.Album}}/track/{{.Title}}">{{.Title}}</a></li>
+  {{range $a := .Album.Tracks }}
+
+  <li{{ if $a.Selected }} class="active"{{end}}><a href="/album/{{$.PageId}}/track/{{$a.Id}}"><i class="glyphicon glyphicon-play"></i> {{$a.Title}}</a></li>
+
   {{end}}
 </ul>

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/ae0000/gorhythmbox/rhythmbox"
 	"github.com/codegangsta/martini"
@@ -9,10 +9,12 @@ import (
 )
 
 type PageData struct {
+	PageId   string
 	Name     string
-	Albums   []string
-	Album    rhythmbox.Album
+	Albums   []rhythmbox.Item
+	Album    rhythmbox.Item
 	PageType string
+	Selected int
 }
 
 type AjaxReturn struct {
@@ -71,7 +73,7 @@ func main() {
 	})
 
 	m.Get("/artists", func(r render.Render) {
-		p := PageData{Name: "Artists", Albums: rb.GetArtists()}
+		p := PageData{Name: "Artists"} //, Albums: rb.GetArtists()}
 		r.HTML(200, "albums", p)
 	})
 
@@ -82,9 +84,8 @@ func main() {
 
 	m.Get("/albums/:album", func(r render.Render, params martini.Params) {
 		album := params["album"]
-		p := PageData{Name: "Albums", Albums: rb.GetAlbums(), Album: rb.GetAlbum(album)}
+		p := PageData{Name: "Album", Album: rb.GetAlbum(album), PageId: album}
 
-		fmt.Println(album)
 		r.HTML(200, "album", p)
 	})
 
@@ -96,11 +97,24 @@ func main() {
 		r.HTML(200, "album", p)
 	})
 
-	m.Get("/album/:album/track/:track", func(r render.Render, params martini.Params) {
-		album := params["album"]
-		track := params["track"]
-		p := PageData{Name: "Albums", Albums: rb.GetAlbums(), Album: rb.GetAlbum(album)}
-		rb.PlayTrack(album, track)
+	m.Get("/album/:albumid/track/:trackid", func(r render.Render, params martini.Params) {
+		albumid := params["albumid"]
+		trackid := params["trackid"]
+
+		// Need to convert trackid to Int
+		id, _ := strconv.ParseInt(trackid, 10, 0)
+		idi := int(id)
+
+		album := rb.GetAlbum(albumid)
+		album.SelectTrack(idi)
+
+		p := PageData{
+			Name:   "Albums",
+			Album:  album,
+			PageId: albumid,
+		}
+
+		rb.PlayTrack(idi)
 
 		r.HTML(200, "album", p)
 	})

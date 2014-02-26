@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"os/user"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ type Client struct {
 	Library string
 	Db      Rhythmdb
 	Artists []string
-	Albums  []string
+	Albums  []Item
 	Genres  []string
 }
 
@@ -54,6 +55,7 @@ type Tracks struct {
 }
 
 type Entry struct {
+	Id          int
 	Type        string `xml:"type,attr"`
 	Title       string `xml:"title"`
 	Genre       string `xml:"genre"`
@@ -71,19 +73,42 @@ type Entry struct {
 	// Bitrate string `xml:"bitrate"`
 	// Date string `xml:"date"`
 	MediaType string `xml:"media-type"`
+	Selected  bool
 }
 
-type Album struct {
+type Item struct {
+	Id     int
+	Name   string
+	Type   string
 	Entry  Entry
 	Tracks []Entry
 }
 
-// ByTrackNumber implements sort.Interface for []Entry based on the track number
+func (i *Item) SelectTrack(trackid int) {
+	for j, t := range i.Tracks {
+		if t.Id == trackid {
+			i.Tracks[j].Selected = true
+			return
+		}
+	}
+}
+
+// Sorters
 type ByTrackNumber []Entry
+type ByArtist []Item
+type ByAlbum []Item
 
 func (a ByTrackNumber) Len() int           { return len(a) }
 func (a ByTrackNumber) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByTrackNumber) Less(i, j int) bool { return a[i].TrackNumber < a[j].TrackNumber }
+
+func (a ByArtist) Len() int           { return len(a) }
+func (a ByArtist) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByArtist) Less(i, j int) bool { return a[i].Entry.Artist < a[j].Entry.Artist }
+
+func (a ByAlbum) Len() int           { return len(a) }
+func (a ByAlbum) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByAlbum) Less(i, j int) bool { return a[i].Entry.Album < a[j].Entry.Album }
 
 // Read in the library and set everything up for browsing
 func (r *Client) Setup() {
@@ -99,11 +124,22 @@ func (r *Client) Setup() {
 		return
 	}
 
+	// Add Id
+	for i := 0; i < len(r.Db.Entries); i++ {
+		r.Db.Entries[i].Id = i
+	}
+
 	// Sort out the unique artists, albums and genres
 	for _, e := range r.Db.Entries {
 		if len(e.Album) > 0 {
 			if !r.AlbumExists(e.Album) {
-				r.Albums = append(r.Albums, e.Album)
+				item := Item{
+					Id:    e.Id,
+					Name:  e.Album,
+					Type:  "Album",
+					Entry: e,
+				}
+				r.Albums = append(r.Albums, item)
 			}
 		}
 		if len(e.Artist) > 0 {
@@ -117,11 +153,14 @@ func (r *Client) Setup() {
 			}
 		}
 	}
+
+	// Sort albums by artist
+
 }
 
 func (r *Client) AlbumExists(s string) bool {
 	for _, a := range r.Albums {
-		if a == s {
+		if a.Name == s {
 			return true
 		}
 	}
@@ -146,18 +185,20 @@ func (r *Client) GenreExists(s string) bool {
 	return false
 }
 
-func (r *Client) GetAlbums() []string {
+func (r *Client) GetAlbums() []Item {
+	sort.Sort(ByArtist(r.Albums))
 	return r.Albums
-	// for _, a := range r.Albums {
-	// 	fmt.Println(a)
-	// }
 }
 
-func (r *Client) GetAlbum(searchAlbum string) Album {
-	album := Album{}
+func (r *Client) GetAlbum(albumId string) Item {
+	// Need to convert albumId to Int
+	id, _ := strconv.ParseInt(albumId, 10, 0)
+	idi := int(id)
+	album := Item{}
+	albumName := r.Db.Entries[idi].Album
 
 	for _, a := range r.Db.Entries {
-		if a.Album == searchAlbum {
+		if a.Album == albumName {
 			if len(album.Entry.Album) == 0 {
 				album.Entry = a
 			}
@@ -165,6 +206,7 @@ func (r *Client) GetAlbum(searchAlbum string) Album {
 		}
 	}
 
+	sort.Sort(ByTrackNumber(album.Tracks))
 	return album
 }
 
@@ -208,14 +250,10 @@ func (r *Client) EnqueueAlbum(album string) {
 
 }
 
-func (r *Client) PlayTrack(album, track string) {
-	for _, e := range r.Db.Entries {
-		if e.Album == album && e.Title == track {
-			r.ClearQueue()
-			r.Enqueue(e.Location)
-			r.Play()
-		}
-	}
+func (r *Client) PlayTrack(id int) {
+	r.ClearQueue()
+	r.Enqueue(r.Db.Entries[id].Location)
+	r.Next()
 }
 
 // Assume that we are running from the users account which has Rhythmbox
