@@ -234,15 +234,21 @@ func (r *Client) GuessLibrary() {
 // Executes the options against the actual client
 func (r *Client) Execute(s ...string) {
 
+	out := r.ExecuteAndReturn(s...)
+
+	print(out)
+}
+
+// Executes the options against the actual client
+func (r *Client) ExecuteAndReturn(s ...string) string {
+
 	cmd := exec.Command(RhythmboxClient, s...) //s[0], s[1]) //"--enqueue", "file:///home/ae/Music/Doolittle%20%5BMFSL%5D/Pixies%20-%20Doolittle%20(MFSL)%20-%2002%20-%20Tame.flac")
 	out, err := cmd.Output()
 	// fmt.Println(s)
 	// fmt.Println(out)
 	if err != nil {
-		println(err.Error())
-		return
+		return string(err.Error())
 	}
 
-	print(string(out))
-
+	return string(out)
 }

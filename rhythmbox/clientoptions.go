@@ -71,13 +71,13 @@ func (r *Client) ClearQueue() {
 }
 
 // Print the title and artist of the playing song
-func (r *Client) PrintPlaying() {
-	r.Execute("--print-playing")
+func (r *Client) PrintPlaying() string {
+	return r.ExecuteAndReturn("--print-playing")
 }
 
 // Print formatted details of the song
-func (r *Client) PrintPlayingFormat() {
-	r.Execute("--print-playing-format")
+func (r *Client) PrintPlayingFormat(format string) string {
+	return r.ExecuteAndReturn("--print-playing-format", format)
 }
 
 // Select the source matching the specified URI

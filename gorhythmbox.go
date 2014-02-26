@@ -15,6 +15,14 @@ type PageData struct {
 	PageType string
 }
 
+type AjaxReturn struct {
+	A,
+	B,
+	C,
+	D,
+	E string
+}
+
 func main() {
 	// Setup Rhythmbox
 	rb := rhythmbox.Client{}
@@ -34,24 +42,23 @@ func main() {
 		r.HTML(200, "home", p)
 	})
 
-	m.Get("/next", func(r render.Render) {
-		p := PageData{Name: "Next"}
-		rb.Play()
-		rb.Next()
-		r.HTML(200, "home", p)
-	})
+	m.Get("/ajax/:do", func(r render.Render, params martini.Params) {
+		switch params["do"] {
+		case "previous":
+			rb.Previous()
+		case "play":
+			rb.Play()
+		case "pause":
+			rb.Pause()
+		case "next":
+			rb.Play()
+			rb.Next()
+		case "current":
+			r.JSON(200, AjaxReturn{A: rb.PrintPlayingFormat("<strong>%" + "aa:</strong><em> " + "%" + "tt</em>")})
+			return
+		}
 
-	m.Get("/previous", func(r render.Render) {
-		p := PageData{Name: "Previous"}
-		rb.Play()
-		rb.Previous()
-		r.HTML(200, "home", p)
-	})
-
-	m.Get("/pause", func(r render.Render) {
-		p := PageData{Name: "pause"}
-		rb.PlayPause()
-		r.HTML(200, "home", p)
+		r.JSON(200, PageData{Name: "Next"}) //  HTML(200, "home", p)
 	})
 
 	m.Get("/albums", func(r render.Render) {

@@ -32,9 +32,11 @@
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="/">Home</a></li>
-            <li><a href="/next">Play next</a></li>
-            <li><a href="/previous">Play previous</a></li>
-            <li><a href="/pause">Pause / Unpause</a></li>
+            <li><a id="previous" href="#"><span class="glyphicon glyphicon-step-backward"></span> Prev</a></li>
+            <li><a id="play" href="#"><span class="glyphicon glyphicon-play"></span> Play </a></li>
+            <li><a id="pause" href="#"><span class="glyphicon glyphicon-pause"></span> Pause </a></li>
+            <li><a id="next" href="#"><span class="glyphicon glyphicon-step-forward"></span> Next </a></li>
+            
             <!--<li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
@@ -49,7 +51,7 @@
             </li>-->
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="">Currently playing</a></li>
+            <li><a id="current" href="">Currently playing</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -68,5 +70,20 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
+    <script>
+
+      $('#previous').click(function(){ $.get( "/ajax/previous"); });
+      $('#play').click(function(){ $.get( "/ajax/play"); });
+      $('#pause').click(function(){ $.get( "/ajax/pause"); });
+      $('#next').click(function(){ $.get( "/ajax/next"); });
+
+      var t=setInterval(updatePlaying,1000);
+
+      function updatePlaying(){
+        $.get( "/ajax/current", function( d ) {
+          $( "#current" ).html( d.A );
+        });
+      }
+    </script>
   </body>
 </html>
