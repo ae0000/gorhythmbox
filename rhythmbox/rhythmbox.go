@@ -15,7 +15,7 @@ import (
 type Client struct {
 	Library string
 	Db      Rhythmdb
-	Artists []string
+	Artists []Item
 	Albums  []Item
 	Genres  []string
 }
@@ -144,18 +144,22 @@ func (r *Client) Setup() {
 		}
 		if len(e.Artist) > 0 {
 			if !r.ArtistExists(e.Artist) {
-				r.Artists = append(r.Artists, e.Artist)
+				item := Item{
+					Id:    e.Id,
+					Name:  e.Artist,
+					Type:  "Artist",
+					Entry: e,
+				}
+				r.Artists = append(r.Artists, item)
 			}
 		}
+
 		if len(e.Genre) > 0 {
 			if !r.GenreExists(e.Genre) {
 				r.Genres = append(r.Genres, e.Genre)
 			}
 		}
 	}
-
-	// Sort albums by artist
-
 }
 
 func (r *Client) AlbumExists(s string) bool {
@@ -169,7 +173,7 @@ func (r *Client) AlbumExists(s string) bool {
 
 func (r *Client) ArtistExists(s string) bool {
 	for _, a := range r.Artists {
-		if a == s {
+		if a.Name == s {
 			return true
 		}
 	}
@@ -190,6 +194,11 @@ func (r *Client) GetAlbums() []Item {
 	return r.Albums
 }
 
+func (r *Client) GetArtists() []Item {
+	sort.Sort(ByArtist(r.Artists))
+	return r.Artists
+}
+
 func (r *Client) GetAlbum(albumId string) Item {
 	// Need to convert albumId to Int
 	id, _ := strconv.ParseInt(albumId, 10, 0)
@@ -208,10 +217,6 @@ func (r *Client) GetAlbum(albumId string) Item {
 
 	sort.Sort(ByTrackNumber(album.Tracks))
 	return album
-}
-
-func (r *Client) GetArtists() []string {
-	return r.Artists
 }
 
 func (r *Client) GetGenres() {
@@ -253,7 +258,7 @@ func (r *Client) EnqueueAlbum(album string) {
 func (r *Client) PlayTrack(id int) {
 	r.ClearQueue()
 	r.Enqueue(r.Db.Entries[id].Location)
-	r.Next()
+	r.Play()
 }
 
 // Assume that we are running from the users account which has Rhythmbox

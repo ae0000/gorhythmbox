@@ -78,13 +78,14 @@
       $('#pause').click(function(){ $.get( "/ajax/pause"); });
       $('#next').click(function(){ $.get( "/ajax/next"); });
 
-      var t=setInterval(updatePlaying,1000);
+      var t=setInterval(updatePlaying,30000);
 
       function updatePlaying(){
         $.get( "/ajax/current", function( d ) {
           $( "#current" ).html( d.A );
         });
       }
+      updatePlaying()
     </script>
   </body>
 </html>

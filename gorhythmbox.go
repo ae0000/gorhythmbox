@@ -9,12 +9,13 @@ import (
 )
 
 type PageData struct {
-	PageId   string
-	Name     string
-	Albums   []rhythmbox.Item
-	Album    rhythmbox.Item
-	PageType string
-	Selected int
+	PageId    string
+	Name      string
+	Albums    []rhythmbox.Item
+	Album     rhythmbox.Item
+	PageType  string
+	Selected  int
+	ShowTitle bool
 }
 
 type AjaxReturn struct {
@@ -65,15 +66,20 @@ func main() {
 
 	m.Get("/albums", func(r render.Render) {
 		p := PageData{
-			Name:     "Albums",
-			PageType: "albums",
-			Albums:   rb.GetAlbums(),
+			Name:      "Albums",
+			PageType:  "albums",
+			Albums:    rb.GetAlbums(),
+			ShowTitle: true,
 		}
 		r.HTML(200, "albums", p)
 	})
 
 	m.Get("/artists", func(r render.Render) {
-		p := PageData{Name: "Artists"} //, Albums: rb.GetArtists()}
+		p := PageData{
+			Name:     "Artists",
+			PageType: "artists",
+			Albums:   rb.GetArtists(),
+		}
 		r.HTML(200, "albums", p)
 	})
 
