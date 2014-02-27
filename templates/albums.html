@@ -1,12 +1,12 @@
 <h1>{{.Name}}</h1>
 <ul class="nav nav-stacked nav-pills">
   {{range $a := .Albums }}
-  <li>
+  <li class="slightborder">
   <a href="/{{$.PageType}}/{{$a.Id}}">
-  {{if $a.HasImage}}<img width="30" src="{{$a.Image}}">{{else}}<img width="30" src="">{{end}} 
-  <strong>{{$a.Entry.Artist}}:</strong>
+  <!--{{if $a.HasImage}}<img width="30" src="{{$a.Image}}">{{else}}<img width="30" src="">{{end}} -->
+  <strong>{{$a.Entry.Artist}}:</strong><br>
   {{if $.ShowTitle}} {{$a.Name}} {{end}}
-  <span class="label label-info pull-right">{{$a.Entry.Genre}}</span>
+  {{if $a.HasGenre}}<span class="label label-success pull-right">{{$a.Entry.Genre}}</span>{{end}}
   </a>
   </li>
   {{end}}

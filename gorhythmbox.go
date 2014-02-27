@@ -59,6 +59,10 @@ func main() {
 		case "next":
 			rb.Play()
 			rb.Next()
+		case "volumeup":
+			rb.VolumeUp()
+		case "volumedown":
+			rb.VolumeDown()
 		case "current":
 			r.JSON(200, AjaxReturn{A: rb.PrintPlayingFormat("<strong>%" + "aa:</strong><em> " + "%" + "tt</em>")})
 			return
@@ -187,6 +191,60 @@ func main() {
 		r.HTML(200, "artist", p)
 	})
 
+	m.Get("/artist/enqueue/:artistid", func(r render.Render, params martini.Params) {
+		artistid := params["artistid"]
+
+		// Need to convert artistid to Int
+		id, _ := strconv.ParseInt(artistid, 10, 0)
+		idi := int(id)
+
+		p := PageData{
+			Name:   "Album",
+			Albums: rb.GetArtistsAlbums(idi),
+			PageId: artistid,
+			Artist: rb.GetArtist(idi),
+		}
+
+		rb.EnqueueArtist(idi)
+		r.HTML(200, "artist", p)
+	})
+
+	m.Get("/artist/play/:artistid", func(r render.Render, params martini.Params) {
+		artistid := params["artistid"]
+
+		// Need to convert artistid to Int
+		id, _ := strconv.ParseInt(artistid, 10, 0)
+		idi := int(id)
+
+		p := PageData{
+			Name:   "Album",
+			Albums: rb.GetArtistsAlbums(idi),
+			PageId: artistid,
+			Artist: rb.GetArtist(idi),
+		}
+
+		rb.PlayArtist(idi)
+		r.HTML(200, "artist", p)
+	})
+
+	m.Get("/artist/random/:artistid", func(r render.Render, params martini.Params) {
+		artistid := params["artistid"]
+
+		// Need to convert artistid to Int
+		id, _ := strconv.ParseInt(artistid, 10, 0)
+		idi := int(id)
+
+		p := PageData{
+			Name:   "Album",
+			Albums: rb.GetArtistsAlbums(idi),
+			PageId: artistid,
+			Artist: rb.GetArtist(idi),
+		}
+
+		rb.PlayArtistRandomly(idi)
+		r.HTML(200, "artist", p)
+	})
+
 	m.Get("/genre/:genreid", func(r render.Render, params martini.Params) {
 		genreid := params["genreid"]
 
@@ -224,6 +282,57 @@ func main() {
 
 		rb.PlayTrack(idi)
 
+		r.HTML(200, "genre", p)
+	})
+
+	m.Get("/genre/enqueue/:genreid", func(r render.Render, params martini.Params) {
+		genreid := params["genreid"]
+
+		// Need to convert genreid to Int
+		id, _ := strconv.ParseInt(genreid, 10, 0)
+		idi := int(id)
+
+		p := PageData{
+			Name:   "Genre",
+			Album:  rb.GetGenreTracks(idi),
+			PageId: genreid,
+		}
+
+		rb.EnqueueGenre(idi)
+		r.HTML(200, "genre", p)
+	})
+
+	m.Get("/genre/play/:genreid", func(r render.Render, params martini.Params) {
+		genreid := params["genreid"]
+
+		// Need to convert genreid to Int
+		id, _ := strconv.ParseInt(genreid, 10, 0)
+		idi := int(id)
+
+		p := PageData{
+			Name:   "Genre",
+			Album:  rb.GetGenreTracks(idi),
+			PageId: genreid,
+		}
+
+		rb.PlayGenre(idi)
+		r.HTML(200, "genre", p)
+	})
+
+	m.Get("/genre/random/:genreid", func(r render.Render, params martini.Params) {
+		genreid := params["genreid"]
+
+		// Need to convert genreid to Int
+		id, _ := strconv.ParseInt(genreid, 10, 0)
+		idi := int(id)
+
+		p := PageData{
+			Name:   "Genre",
+			Album:  rb.GetGenreTracks(idi),
+			PageId: genreid,
+		}
+
+		rb.PlayGenreRandomly(idi)
 		r.HTML(200, "genre", p)
 	})
 

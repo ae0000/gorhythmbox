@@ -93,6 +93,7 @@ type Item struct {
 	Count    int
 	Image    string
 	HasImage bool
+	HasGenre bool
 	Entry    Entry
 	Tracks   []Entry
 }
@@ -162,10 +163,11 @@ func (r *Client) Setup() {
 		if len(e.Album) > 0 {
 			if !r.AlbumExists(e.Album) {
 				item := Item{
-					Id:    e.Id,
-					Name:  e.Album,
-					Type:  "Album",
-					Entry: e,
+					Id:       e.Id,
+					Name:     e.Album,
+					Type:     "Album",
+					Entry:    e,
+					HasGenre: e.Genre != "Unknown",
 				}
 				// Try and get a pic
 				item.Image, item.HasImage = r.GetAlbumImage(e.Id)
@@ -176,11 +178,12 @@ func (r *Client) Setup() {
 		if len(e.Artist) > 0 {
 			if !r.ArtistExists(e.Artist) {
 				item := Item{
-					Id:    e.Id,
-					Name:  e.Artist,
-					Type:  "Artist",
-					Count: 1,
-					Entry: e,
+					Id:       e.Id,
+					Name:     e.Artist,
+					Type:     "Artist",
+					Count:    1,
+					Entry:    e,
+					HasGenre: e.Genre != "Unknown",
 				}
 				r.Artists = append(r.Artists, item)
 			} else {
@@ -188,14 +191,15 @@ func (r *Client) Setup() {
 			}
 		}
 
-		if len(e.Genre) > 0 {
+		if len(e.Genre) > 0 && e.Genre != "Unknown" {
 			if !r.GenreExists(e.Genre) {
 				item := Item{
-					Id:    e.Id,
-					Name:  e.Genre,
-					Type:  "Genre",
-					Count: 1,
-					Entry: e,
+					Id:       e.Id,
+					Name:     e.Genre,
+					Type:     "Genre",
+					Count:    1,
+					Entry:    e,
+					HasGenre: e.Genre != "Unknown",
 				}
 				r.Genres = append(r.Genres, item)
 			} else {
@@ -278,6 +282,7 @@ func (r *Client) GetAlbum(id int) Item {
 
 	// Try and get a pic
 	album.Image, album.HasImage = r.GetAlbumImage(id)
+	album.HasGenre = album.Entry.Genre != "Unknown"
 
 	sort.Sort(ByTrackNumber(album.Tracks))
 	return album
@@ -290,13 +295,13 @@ func (r *Client) GetAlbumImage(id int) (image string, hasImage bool) {
 	strId := strconv.Itoa(id)
 	imagePath := "/albums/a" + strId + ".jpg"
 
-	// Check if already exists
-	if _, err := os.Stat("public" + imagePath); err == nil {
-		// File already exists
-		image = imagePath
-		hasImage = true
-		return
-	}
+	// // Check if already exists
+	// if _, err := os.Stat("public" + imagePath); err == nil {
+	// 	// File already exists
+	// 	image = imagePath
+	// 	hasImage = true
+	// 	return
+	// }
 
 	// Remove the bits we dont want
 	location = strings.TrimLeft(location, "file:/")
@@ -356,6 +361,22 @@ func (r *Client) GetArtistsAlbums(id int) []Item {
 	return albums.Items
 }
 
+func (r *Client) GetArtistsTracks(id int) Item {
+	artist := r.Db.Entries[id].Artist
+	album := Item{}
+
+	// Get the first
+	for _, a := range r.Db.Entries {
+
+		if a.Artist == artist {
+			album.Tracks = append(album.Tracks, a)
+		}
+
+	}
+
+	return album
+}
+
 func (r *Client) GetGenreTracks(id int) Item {
 	genre := r.Db.Entries[id].Genre
 	album := Item{Name: genre}
@@ -408,6 +429,66 @@ func (r *Client) EnqueueAlbum(id int) {
 	for _, e := range a.Tracks {
 		r.Enqueue(e.Location)
 	}
+}
+
+func (r *Client) EnqueueArtist(id int) {
+
+	a := r.GetArtistsTracks(id)
+
+	for _, f := range a.Tracks {
+		r.Enqueue(f.Location)
+	}
+
+}
+
+func (r *Client) PlayArtist(id int) {
+	r.ClearQueue()
+	r.EnqueueArtist(id)
+	r.Play()
+}
+
+func (r *Client) PlayArtistRandomly(id int) {
+	a := r.GetArtistsTracks(id)
+
+	r.ClearQueue()
+
+	// Sort tracks randomly
+	sort.Sort(ByRandom(a.Tracks))
+	for _, f := range a.Tracks {
+		r.Enqueue(f.Location)
+	}
+
+	r.Play()
+}
+
+func (r *Client) EnqueueGenre(id int) {
+
+	a := r.GetGenreTracks(id)
+
+	for _, f := range a.Tracks {
+		r.Enqueue(f.Location)
+	}
+
+}
+
+func (r *Client) PlayGenre(id int) {
+	r.ClearQueue()
+	r.EnqueueGenre(id)
+	r.Play()
+}
+
+func (r *Client) PlayGenreRandomly(id int) {
+	a := r.GetGenreTracks(id)
+
+	r.ClearQueue()
+
+	// Sort tracks randomly
+	sort.Sort(ByRandom(a.Tracks))
+	for _, f := range a.Tracks {
+		r.Enqueue(f.Location)
+	}
+
+	r.Play()
 }
 
 func (r *Client) PlayTrack(id int) {

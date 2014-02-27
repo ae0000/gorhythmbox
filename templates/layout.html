@@ -14,8 +14,25 @@
     <!-- Bootstrap core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <style>
-    body {margin-bottom: 80px;}
+    body {margin-bottom: 200px;}
     img.albumimage {margin-right:20px;}
+
+
+    .controlbar {
+      margin:10px;
+    }
+    .controlbar a {
+      text-align: center;
+      padding-left:10px;
+      padding-right:10px;
+      padding-top:5px;
+      padding-bottom: 5px;
+      font-size:25px;
+    }
+    .slightborder {
+      border-bottom: 1px #eeeeee solid;
+    }
+
     </style>
   </head>
 
@@ -36,19 +53,9 @@
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="/">Home</a></li>
-            <li><a id="previous" href="#"><span class="glyphicon glyphicon-step-backward"></span> Prev</a></li>
-            <li><a id="play" href="#"><span class="glyphicon glyphicon-play"></span> Play </a></li>
-            <li><a id="pause" href="#"><span class="glyphicon glyphicon-pause"></span> Pause </a></li>
-            <li><a id="next" href="#"><span class="glyphicon glyphicon-step-forward"></span> Next </a></li>
-            
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Jump <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="/albums">Albums</a></li>
-                <li><a href="/artists">Artists</a></li>
-                <li><a href="/genres">Genres</a></li>
-              </ul>
-            </li>
+            <li><a href="/albums">Albums</a></li>
+            <li><a href="/artists">Artists</a></li>
+            <li><a href="/genres">Genres</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -61,17 +68,25 @@
 
     </div> <!-- /container -->
 
-
     <nav class="navbar navbar-inverse navbar-fixed-bottom" role="navigation">
       <div class="container">
         <div class="navbar-header">
         <a class="navbar-brand" href="#"><span id="current" class="text-danger">Currently playing</span></a>
         </div>
-        <div class="navbar-collapse collapse pull-right">
-          <ul class="nav navbar-nav">
-            <li><a class="pull-right" href="#top"><small>Back to top</small></a></li>
-          </ul>
-        </div>
+        <ul class="nav navbar-nav ">
+          <li>
+            <div class="controlbar">
+              <a id="previous" href="#"><span class="glyphicon glyphicon-step-backward"></span></a>
+              <a id="play" href="#"><span class="glyphicon glyphicon-play"></span></a>
+              <a id="pause" href="#"><span class="glyphicon glyphicon-pause"></span></a>
+              <a id="next" href="#"><span class="glyphicon glyphicon-step-forward"></span></a>
+              <a id="volumedown" href="#"><span class="glyphicon glyphicon-volume-down"></span></a>
+              <a id="volumeup" href="#"><span class="glyphicon glyphicon-volume-up"></span></a>
+            </div>
+          </li>
+          <li><a class="" href="#top"><small>Back to top</small></a></li>
+        </ul>
+        
       </div>
     </nav>
 
@@ -82,10 +97,12 @@
     <script src="/js/bootstrap.min.js"></script>
     <script>
 
-      $('#previous').click(function(){ $.get( "/ajax/previous"); });
-      $('#play').click(function(){ $.get( "/ajax/play"); });
+      $('#previous').click(function(){ $.get( "/ajax/previous"); updatePlaying(); });
+      $('#play').click(function(){ $.get( "/ajax/play");  updatePlaying(); });
       $('#pause').click(function(){ $.get( "/ajax/pause"); });
-      $('#next').click(function(){ $.get( "/ajax/next"); });
+      $('#next').click(function(){ $.get( "/ajax/next");  updatePlaying(); });
+      $('#volumeup').click(function(){ $.get( "/ajax/volumeup"); });
+      $('#volumedown').click(function(){ $.get( "/ajax/volumedown"); });
 
       var t=setInterval(updatePlaying,30000);
 

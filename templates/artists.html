@@ -1,10 +1,10 @@
 <h1>{{.Name}}</h1>
 <ul class="nav nav-stacked nav-pills">
   {{range $a := .Albums }}
-  <li>
-  <a href="/{{$.PageType}}/{{$a.Id}}"><strong>{{$a.Entry.Artist}}:</strong>
-  <span class="label label-default">{{$a.Count}}</span>
-  <span class="label label-info pull-right">{{$a.Entry.Genre}}</span></a>
+  <li class="slightborder">
+  <a href="/{{$.PageType}}/{{$a.Id}}"><strong>{{$a.Entry.Artist}}:</strong><br>
+  <span class="label label-default">{{$a.Count}} tracks</span>
+  <span class="label label-success pull-right">{{$a.Entry.Genre}}</span></a>
 
   </li>
   {{end}}

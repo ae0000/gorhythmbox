@@ -1,10 +1,11 @@
 <div class="well">
-<h2>{{if .Album.HasImage}}<img class="albumimage" width="80" src="{{.Album.Image}}">{{end}} {{.Album.Entry.Artist}} <small>{{.Album.Entry.Album}}</small> <span class="label label-info pull-right">{{.Album.Entry.Genre}}</span></h2>
+{{if .Album.HasImage}}<img class="albumimage" width="300" src="{{.Album.Image}}">{{end}}
+<h2>{{.Album.Entry.Artist}}<br><small>{{.Album.Entry.Album}}<br><span class="label label-success">{{.Album.Entry.Genre}}</span></small></h2>
 
 <hr>
-<div >
+<div class="btn-group-vertical">
   <a class="btn btn-primary" href="/album/play/{{$.PageId}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
-  <a class="btn btn-primary" href="/album/enqueue/{{$.PageId}}"><span class="glyphicon glyphicon-play"></span> Enqueue all tracks</a>
+  <a class="btn btn-primary" href="/album/enqueue/{{$.PageId}}"><span class="glyphicon glyphicon-upload"></span> Enqueue all tracks</a>
   <a class="btn btn-primary" href="/album/random/{{$.PageId}}"><span class="glyphicon glyphicon-random"></span> Play random</a>
   <a class="btn btn-info" href="/artist/{{.Album.Entry.Id}}"><span class="glyphicon glyphicon-th-list"></span> {{.Album.Entry.Artist}} albums</a>
 </div>

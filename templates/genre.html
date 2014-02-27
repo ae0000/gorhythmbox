@@ -1,18 +1,19 @@
 <div class="well">
-<h2>{{.Album.Name}}</h2>
+	<h2>{{.Album.Name}}</h2>
 
-<hr>
-<div >
-  <a class="btn btn-primary" href="/albums/play/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
-  <a class="btn btn-primary" href="/albums/enqueue/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Enqueue all tracks</a>
-</div>
+	<hr>
+	<div class="btn-group-vertical">
+	  <a class="btn btn-primary" href="/genre/play/{{.PageId}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
+	  <a class="btn btn-primary" href="/genre/enqueue/{{.PageId}}"><span class="glyphicon glyphicon-upload"></span> Enqueue all tracks</a>
+	</div>
 
 </div>
 
 <ul class="nav nav-stacked nav-pills">
   {{range $a := .Album.Tracks }}
 
-  <li id="g{{$a.Id}}" {{ if $a.Selected }} class="active"{{end}}><a href="/genre/{{$.PageId}}/track/{{$a.Id}}#g{{$a.Id}}"><i class="glyphicon glyphicon-play"></i> <strong>{{$a.Artist}}:</strong> {{$a.Title}}</a></li>
+  <li class="slightborder{{ if $a.Selected }} active{{end}}" id="g{{$a.Id}}" >
+  <a href="/genre/{{$.PageId}}/track/{{$a.Id}}#g{{$a.Id}}"><i class="glyphicon glyphicon-play"></i> <strong>{{$a.Artist}}:</strong><br>{{$a.Title}}</a></li>
 
   {{end}}
 </ul>
