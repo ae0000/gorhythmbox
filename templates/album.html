@@ -1,10 +1,12 @@
 <div class="well">
-<h2>{{.Album.Entry.Artist}} <small>{{.Album.Entry.Album}}</small> <span class="label label-info pull-right">{{.Album.Entry.Genre}}</span></h2>
+<h2>{{if .Album.HasImage}}<img class="albumimage" width="80" src="{{.Album.Image}}">{{end}} {{.Album.Entry.Artist}} <small>{{.Album.Entry.Album}}</small> <span class="label label-info pull-right">{{.Album.Entry.Genre}}</span></h2>
 
 <hr>
 <div >
-  <a class="btn btn-primary" href="/albums/play/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
-  <a class="btn btn-primary" href="/albums/enqueue/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Enqueue all tracks</a>
+  <a class="btn btn-primary" href="/album/play/{{$.PageId}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
+  <a class="btn btn-primary" href="/album/enqueue/{{$.PageId}}"><span class="glyphicon glyphicon-play"></span> Enqueue all tracks</a>
+  <a class="btn btn-primary" href="/album/random/{{$.PageId}}"><span class="glyphicon glyphicon-random"></span> Play random</a>
+  <a class="btn btn-info" href="/artist/{{.Album.Entry.Id}}"><span class="glyphicon glyphicon-th-list"></span> {{.Album.Entry.Artist}} albums</a>
 </div>
 
 </div>
@@ -12,7 +14,7 @@
 <ul class="nav nav-stacked nav-pills">
   {{range $a := .Album.Tracks }}
 
-  <li{{ if $a.Selected }} class="active"{{end}}><a href="/album/{{$.PageId}}/track/{{$a.Id}}"><i class="glyphicon glyphicon-play"></i> {{$a.Title}}</a></li>
+  <li id="g{{$a.Id}}" {{ if $a.Selected }} class="active"{{end}}><a href="/album/{{$.PageId}}/track/{{$a.Id}}#g{{$a.Id}}"><i class="glyphicon glyphicon-play"></i> {{$a.Title}}</a></li>
 
   {{end}}
 </ul>

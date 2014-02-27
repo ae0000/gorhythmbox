@@ -13,12 +13,16 @@
 
     <!-- Bootstrap core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    body {margin-bottom: 80px;}
+    img.albumimage {margin-right:20px;}
+    </style>
   </head>
 
   <body>
 
     <!-- Static navbar -->
-    <div class="navbar navbar-default navbar-static-top" role="navigation">
+    <div id="top" class="navbar navbar-default navbar-static-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -62,6 +66,11 @@
       <div class="container">
         <div class="navbar-header">
         <a class="navbar-brand" href="#"><span id="current" class="text-danger">Currently playing</span></a>
+        </div>
+        <div class="navbar-collapse collapse pull-right">
+          <ul class="nav navbar-nav">
+            <li><a class="pull-right" href="#top"><small>Back to top</small></a></li>
+          </ul>
         </div>
       </div>
     </nav>

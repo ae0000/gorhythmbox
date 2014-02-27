@@ -1,0 +1,24 @@
+<div class="well">
+<h2>{{.Artist.Artist}}</h2>
+
+<hr>
+<div >
+  <a class="btn btn-primary" href="/albums/play/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Play all tracks</a>
+  <a class="btn btn-primary" href="/albums/enqueue/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-play"></span> Enqueue all tracks</a>
+  <a class="btn btn-primary" href="/albums/random/{{.Album.Entry.Album}}"><span class="glyphicon glyphicon-random"></span> Play randomly</a>
+</div>
+
+</div>
+
+<h3>Albums</h3>
+<ul class="nav nav-stacked nav-pills">
+  {{range $a := .Albums }}
+  <li>
+  <a href="/albums/{{$a.Id}}">
+  {{if $a.HasImage}}<img class="albumimage" width="70" src="{{$a.Image}}">{{else}}<img class="albumimage" width="70">{{end}} 
+  <strong>{{$a.Entry.Album}}</strong>
+  <span class="label label-info pull-right">{{$a.Entry.Genre}}</span>
+  </a>
+  </li>
+  {{end}}
+</ul>

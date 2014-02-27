@@ -2,7 +2,9 @@
 <ul class="nav nav-stacked nav-pills">
   {{range $a := .Albums }}
   <li>
-  <a href="/{{$.PageType}}/{{$a.Id}}"><strong>{{$a.Entry.Artist}}:</strong>
+  <a href="/{{$.PageType}}/{{$a.Id}}">
+  {{if $a.HasImage}}<img width="30" src="{{$a.Image}}">{{else}}<img width="30" src="">{{end}} 
+  <strong>{{$a.Entry.Artist}}:</strong>
   {{if $.ShowTitle}} {{$a.Name}} {{end}}
   <span class="label label-info pull-right">{{$a.Entry.Genre}}</span>
   </a>

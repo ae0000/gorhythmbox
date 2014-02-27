@@ -1,0 +1,8 @@
+<h1>{{.Name}}</h1>
+<ul class="nav nav-stacked nav-pills">
+  {{range $a := .Albums }}
+  <li>
+  <a href="/{{$.PageType}}/{{$a.Id}}"><strong>{{$a.Entry.Genre}}</strong> <span class="label label-default">{{$a.Count}}</span></a>
+  </li>
+  {{end}}
+</ul>

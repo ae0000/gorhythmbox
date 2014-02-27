@@ -3,13 +3,19 @@ package rhythmbox
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"net/url"
+	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Client struct {
@@ -17,7 +23,7 @@ type Client struct {
 	Db      Rhythmdb
 	Artists []Item
 	Albums  []Item
-	Genres  []string
+	Genres  []Item
 }
 
 const (
@@ -54,6 +60,10 @@ type Tracks struct {
 	Entries []Entry
 }
 
+type Albums struct {
+	Items []Item
+}
+
 type Entry struct {
 	Id          int
 	Type        string `xml:"type,attr"`
@@ -77,11 +87,14 @@ type Entry struct {
 }
 
 type Item struct {
-	Id     int
-	Name   string
-	Type   string
-	Entry  Entry
-	Tracks []Entry
+	Id       int
+	Name     string
+	Type     string
+	Count    int
+	Image    string
+	HasImage bool
+	Entry    Entry
+	Tracks   []Entry
 }
 
 func (i *Item) SelectTrack(trackid int) {
@@ -95,20 +108,35 @@ func (i *Item) SelectTrack(trackid int) {
 
 // Sorters
 type ByTrackNumber []Entry
+type ByRandom []Entry
+type ByArtistE []Entry
 type ByArtist []Item
 type ByAlbum []Item
+type ByGenre []Item
 
 func (a ByTrackNumber) Len() int           { return len(a) }
 func (a ByTrackNumber) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByTrackNumber) Less(i, j int) bool { return a[i].TrackNumber < a[j].TrackNumber }
 
+func (a ByRandom) Len() int           { return len(a) }
+func (a ByRandom) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByRandom) Less(i, j int) bool { return RandBool() }
+
 func (a ByArtist) Len() int           { return len(a) }
 func (a ByArtist) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByArtist) Less(i, j int) bool { return a[i].Entry.Artist < a[j].Entry.Artist }
 
+func (a ByArtistE) Len() int           { return len(a) }
+func (a ByArtistE) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByArtistE) Less(i, j int) bool { return a[i].Artist < a[j].Artist }
+
 func (a ByAlbum) Len() int           { return len(a) }
 func (a ByAlbum) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByAlbum) Less(i, j int) bool { return a[i].Entry.Album < a[j].Entry.Album }
+
+func (a ByGenre) Len() int           { return len(a) }
+func (a ByGenre) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByGenre) Less(i, j int) bool { return a[i].Entry.Genre < a[j].Entry.Genre }
 
 // Read in the library and set everything up for browsing
 func (r *Client) Setup() {
@@ -139,6 +167,9 @@ func (r *Client) Setup() {
 					Type:  "Album",
 					Entry: e,
 				}
+				// Try and get a pic
+				item.Image, item.HasImage = r.GetAlbumImage(e.Id)
+
 				r.Albums = append(r.Albums, item)
 			}
 		}
@@ -148,16 +179,44 @@ func (r *Client) Setup() {
 					Id:    e.Id,
 					Name:  e.Artist,
 					Type:  "Artist",
+					Count: 1,
 					Entry: e,
 				}
 				r.Artists = append(r.Artists, item)
+			} else {
+				r.IncrementArtistCount(e.Artist)
 			}
 		}
 
 		if len(e.Genre) > 0 {
 			if !r.GenreExists(e.Genre) {
-				r.Genres = append(r.Genres, e.Genre)
+				item := Item{
+					Id:    e.Id,
+					Name:  e.Genre,
+					Type:  "Genre",
+					Count: 1,
+					Entry: e,
+				}
+				r.Genres = append(r.Genres, item)
+			} else {
+				r.IncrementGenreCount(e.Genre)
 			}
+		}
+	}
+}
+
+func (r *Client) IncrementGenreCount(s string) {
+	for i, g := range r.Genres {
+		if g.Name == s {
+			r.Genres[i].Count++
+		}
+	}
+}
+
+func (r *Client) IncrementArtistCount(s string) {
+	for i, a := range r.Artists {
+		if a.Name == s {
+			r.Artists[i].Count++
 		}
 	}
 }
@@ -182,7 +241,7 @@ func (r *Client) ArtistExists(s string) bool {
 
 func (r *Client) GenreExists(s string) bool {
 	for _, a := range r.Genres {
-		if a == s {
+		if a.Name == s {
 			return true
 		}
 	}
@@ -199,12 +258,14 @@ func (r *Client) GetArtists() []Item {
 	return r.Artists
 }
 
-func (r *Client) GetAlbum(albumId string) Item {
-	// Need to convert albumId to Int
-	id, _ := strconv.ParseInt(albumId, 10, 0)
-	idi := int(id)
+func (r *Client) GetGenres() []Item {
+	sort.Sort(ByGenre(r.Genres))
+	return r.Genres
+}
+
+func (r *Client) GetAlbum(id int) Item {
 	album := Item{}
-	albumName := r.Db.Entries[idi].Album
+	albumName := r.Db.Entries[id].Album
 
 	for _, a := range r.Db.Entries {
 		if a.Album == albumName {
@@ -215,44 +276,138 @@ func (r *Client) GetAlbum(albumId string) Item {
 		}
 	}
 
+	// Try and get a pic
+	album.Image, album.HasImage = r.GetAlbumImage(id)
+
 	sort.Sort(ByTrackNumber(album.Tracks))
 	return album
 }
 
-func (r *Client) GetGenres() {
-	for _, a := range r.Genres {
-		fmt.Println(a)
-	}
-}
+// Try and get a pic
+func (r *Client) GetAlbumImage(id int) (image string, hasImage bool) {
+	// Get the first image in the dir if there is one
+	location := r.Db.Entries[id].Location
+	strId := strconv.Itoa(id)
+	imagePath := "/albums/a" + strId + ".jpg"
 
-func (r *Client) PlayAlbum(album string) {
-	r.ClearQueue()
-	r.EnqueueAlbum(album)
-}
-
-func (r *Client) EnqueueAlbum(album string) {
-	// Get all tracks that match this album
-	t := Tracks{}
-
-	for _, e := range r.Db.Entries {
-		if e.Album == album {
-			t.Entries = append(t.Entries, e)
-		}
-	}
-
-	if len(t.Entries) == 0 {
-		fmt.Println("No tracks found")
+	// Check if already exists
+	if _, err := os.Stat("public" + imagePath); err == nil {
+		// File already exists
+		image = imagePath
+		hasImage = true
 		return
 	}
 
-	// Sort tracks by tracknumber
-	sort.Sort(ByTrackNumber(t.Entries))
+	// Remove the bits we dont want
+	location = strings.TrimLeft(location, "file:/")
+	lastSlash := strings.LastIndex(location, "/")
+	location = location[:lastSlash+1]
+	// fmt.Println(html.UnescapeString(location))
 
-	for _, e := range t.Entries {
-		fmt.Println("Enqueue: ", e.Title)
-		r.Enqueue(e.Location)
+	e, _ := url.QueryUnescape(location)
+
+	filepath.Walk("/"+e, func(path string, _ os.FileInfo, _ error) error {
+
+		lastFour := path[len(path)-4:]
+		if lastFour == ".jpg" || lastFour == "jpeg" || lastFour == ".png" {
+			Copy("public/albums/a"+strId+".jpg", path)
+			image = imagePath
+			hasImage = true
+			return nil
+		}
+		return nil
+	})
+
+	return
+}
+
+func Copy(dst, src string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	cerr := out.Close()
+	if err != nil {
+		return err
+	}
+	return cerr
+}
+
+func (r *Client) GetArtistsAlbums(id int) []Item {
+	artist := r.Db.Entries[id].Artist
+	albums := Albums{}
+
+	// Get the first
+	for _, a := range r.Albums {
+
+		if a.Entry.Artist == artist {
+			albums.Items = append(albums.Items, a)
+		}
+
 	}
 
+	return albums.Items
+}
+
+func (r *Client) GetGenreTracks(id int) Item {
+	genre := r.Db.Entries[id].Genre
+	album := Item{Name: genre}
+
+	// Get the first
+	for _, e := range r.Db.Entries {
+
+		if e.Genre == genre {
+			album.Tracks = append(album.Tracks, e)
+		}
+
+	}
+
+	sort.Sort(ByArtistE(album.Tracks))
+
+	return album
+}
+
+func (r *Client) GetArtist(id int) Entry {
+	return r.Db.Entries[id]
+}
+
+func (r *Client) PlayAlbum(id int) {
+	r.ClearQueue()
+	r.EnqueueAlbum(id)
+	r.Play()
+}
+
+func (r *Client) PlayAlbumRandomly(id int) {
+	a := r.GetAlbum(id)
+
+	// Sort tracks randomly
+	sort.Sort(ByRandom(a.Tracks))
+
+	r.ClearQueue()
+	for _, e := range a.Tracks {
+		r.Enqueue(e.Location)
+		fmt.Println(e.Title)
+	}
+	r.Play()
+}
+
+func (r *Client) EnqueueAlbum(id int) {
+
+	a := r.GetAlbum(id)
+
+	// Sort tracks by tracknumber
+	sort.Sort(ByTrackNumber(a.Tracks))
+
+	for _, e := range a.Tracks {
+		r.Enqueue(e.Location)
+	}
 }
 
 func (r *Client) PlayTrack(id int) {
@@ -294,4 +449,17 @@ func (r *Client) ExecuteAndReturn(s ...string) string {
 	}
 
 	return string(out)
+}
+
+var randSeed int64 = 1
+
+func random(min, max int) int {
+	randSeed++
+	rand.Seed(time.Now().Unix() + randSeed)
+	return rand.Intn(max-min) + min
+}
+
+func RandBool() bool {
+	a := random(1, 3)
+	return a == 1
 }
